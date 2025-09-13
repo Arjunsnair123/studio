@@ -1,9 +1,9 @@
+
 'use client';
 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Handshake, Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,10 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { findMentorsAction } from '@/lib/actions';
 import { MentorCard } from '@/components/app/mentor-card';
-import { alumniData as initialAlumniData } from '@/lib/data';
-import type { Alumni } from '@/lib/types';
-
-const ALUMNI_STORAGE_KEY = 'alumni-data';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -36,22 +32,7 @@ function SubmitButton() {
 
 export default function MentorMatchingPage() {
   const [state, formAction] = useActionState(findMentorsAction, null);
-  const [allAlumni, setAllAlumni] = useState<Alumni[]>([]);
   const { pending } = useFormStatus();
-
-  useEffect(() => {
-    try {
-      const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
-      if (storedAlumni) {
-        setAllAlumni(JSON.parse(storedAlumni));
-      } else {
-        setAllAlumni(initialAlumniData);
-      }
-    } catch (error) {
-      console.error("Could not load alumni data from localStorage", error);
-      setAllAlumni(initialAlumniData);
-    }
-  }, []);
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
@@ -65,7 +46,6 @@ export default function MentorMatchingPage() {
           </CardHeader>
           <CardContent>
             <form action={formAction} className="space-y-4">
-              <input type="hidden" name="allAlumni" value={JSON.stringify(allAlumni)} />
               <div>
                 <Label htmlFor="skillsAndInterests">Your Skills & Interests</Label>
                 <Textarea

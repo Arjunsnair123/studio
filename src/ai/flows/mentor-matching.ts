@@ -11,23 +11,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const AlumniSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  graduationYear: z.number(),
-  currentRole: z.string(),
-  skills: z.array(z.string()),
-  linkedinURL: z.string(),
-  shortBio: z.string(),
-  avatarUrl: z.string(),
-});
-
 const FindPotentialMentorsInputSchema = z.object({
   studentSkillsAndInterests: z
     .string()
     .describe('A description of the student skills and interests.'),
-  allAlumni: z.array(AlumniSchema).describe('The full list of alumni to search through for potential mentors.')
 });
 export type FindPotentialMentorsInput = z.infer<typeof FindPotentialMentorsInputSchema>;
 
@@ -59,26 +46,12 @@ const prompt = ai.definePrompt({
   name: 'findPotentialMentorsPrompt',
   input: {schema: FindPotentialMentorsInputSchema},
   output: {schema: FindPotentialMentorsOutputSchema},
-  prompt: `You are an expert mentor matching AI agent. Your task is to find the most suitable mentors for a student from a provided list of alumni.
-
-You will be given:
-1. A description of the student's skills and interests.
-2. A JSON list of all available alumni.
-
-Your goal is to analyze the student's needs and compare them against the skills, current role, and bio of each alumnus in the list.
+  prompt: `You are an expert at finding mentors for students. Based on the student's skills and interests, you will generate a list of 5 suitable mentors.
 
 Student's Skills and Interests:
 "{{{studentSkillsAndInterests}}}"
 
-List of all available alumni:
-"{{{json allAlumni}}}"
-
-Instructions:
-1.  Carefully review the list of all alumni.
-2.  Select the top 5 alumni who are the best-matched mentors for the student.
-3.  For each match, calculate a "matchScore" from 0 to 100 that represents how strong the connection is. A higher score means a better match. Consider skills, industry, and role alignment.
-4.  Return ONLY the top 5 mentors as a JSON object that conforms to the output schema. Ensure the 'mentorMatches' field is an array of these 5 mentors.
-`,
+For each mentor, provide a name, email, graduation year, current role, a list of relevant skills, a LinkedIn URL, a match score (from 0-100), and a short bio. The graduation year should be a 4-digit number. The skills should be a comma-separated string. The match score should represent how well the mentor's profile aligns with the student's needs.`,
 });
 
 const findPotentialMentorsFlow = ai.defineFlow(
