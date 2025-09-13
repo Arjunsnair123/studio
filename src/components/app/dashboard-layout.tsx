@@ -50,13 +50,16 @@ export function DashboardLayout({ children, navItems, title }: DashboardLayoutPr
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href} legacyBehavior={false} passHref>
                   <SidebarMenuButton
+                    asChild
                     isActive={pathname === item.href}
                     tooltip={item.label}
                   >
-                    {item.icon}
-                    <span>{item.label}</span>
+                    <div>
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </div>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
