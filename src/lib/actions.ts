@@ -6,7 +6,6 @@ import { findPotentialMentors } from '@/ai/flows/mentor-matching';
 import { enrichProfile } from '@/ai/flows/profile-enrichment';
 import { z } from 'zod';
 import type { Alumni } from './types';
-import { alumniData } from './data';
 
 const enrichProfileSchema = z.object({
   linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL." }),
@@ -41,13 +40,11 @@ export async function enrichAlumniProfile(prevState: any, formData: FormData) {
 
 const findMentorsSchema = z.object({
     skillsAndInterests: z.string().min(10, { message: "Please describe your skills and interests." }),
-    allAlumni: z.string(),
 });
 
 export async function findMentorsAction(prevState: any, formData: FormData) {
     const validatedFields = findMentorsSchema.safeParse({
         skillsAndInterests: formData.get('skillsAndInterests'),
-        allAlumni: formData.get('allAlumni'),
     });
 
     if (!validatedFields.success) {
@@ -57,21 +54,11 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
         };
     }
     
-    let allAlumniParsed: Alumni[] = [];
-    try {
-        allAlumniParsed = JSON.parse(validatedFields.data.allAlumni);
-    } catch(e) {
-        // If parsing fails, fall back to the static data
-        allAlumniParsed = alumniData;
-    }
-
     try {
         const result = await findPotentialMentors({ 
             studentSkillsAndInterests: validatedFields.data.skillsAndInterests,
-            allAlumni: allAlumniParsed,
         });
 
-        // The AI flow now returns Alumni-like objects, so we just need to ensure types are correct.
         const mentorsWithDetails: Alumni[] = result.mentorMatches.map((mentor, index) => ({
             ...mentor,
             id: mentor.id || `mentor-${Date.now() + index}`,
