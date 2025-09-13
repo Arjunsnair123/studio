@@ -1,4 +1,4 @@
-# AlumniLink
+ AlumniLink
 
 This is a Next.js application for managing alumni relations, built in Firebase Studio. It features AI-powered tools for profile enrichment and mentor matching.
 
