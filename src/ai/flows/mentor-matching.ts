@@ -10,11 +10,25 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { Alumni } from '@/lib/types';
+
+const AlumniSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  graduationYear: z.number(),
+  currentRole: z.string(),
+  skills: z.array(z.string()),
+  linkedinURL: z.string(),
+  shortBio: z.string(),
+  avatarUrl: z.string(),
+});
 
 const FindPotentialMentorsInputSchema = z.object({
   studentSkillsAndInterests: z
     .string()
     .describe('A description of the student skills and interests.'),
+  allAlumni: z.array(AlumniSchema).describe('The full list of alumni to search through for potential mentors.')
 });
 export type FindPotentialMentorsInput = z.infer<typeof FindPotentialMentorsInputSchema>;
 
@@ -29,7 +43,7 @@ const FindPotentialMentorsOutputSchema = z.object({
       linkedinURL: z.string().describe('The LinkedIn URL of the mentor.'),
       matchScore: z
         .number()
-        .describe('The score of how well the mentor matches the student.'),
+        .describe('The score of how well the mentor matches the student, from 0 to 100.'),
       shortBio: z.string().describe('A short bio of the mentor.'),
     })
   ),
@@ -46,27 +60,25 @@ const prompt = ai.definePrompt({
   name: 'findPotentialMentorsPrompt',
   input: {schema: FindPotentialMentorsInputSchema},
   output: {schema: FindPotentialMentorsOutputSchema},
-  prompt: `You are an expert mentor matching AI agent.
+  prompt: `You are an expert mentor matching AI agent. Your task is to find the most suitable mentors for a student from a provided list of alumni.
 
-You will use this information about the student's skills and interests to find the best mentors.
+You will be given:
+1. A description of the student's skills and interests.
+2. A JSON list of all available alumni.
 
-Student Skills and Interests: {{{studentSkillsAndInterests}}}
+Your goal is to analyze the student's needs and compare them against the skills, current role, and bio of each alumnus in the list.
 
-Return the top 5 mentors whose skills and interests best match the student's.
+Student's Skills and Interests:
+"{{{studentSkillsAndInterests}}}"
 
-Ensure the mentorMatches field is an array of the top 5 mentors.
+List of all available alumni:
+"{{{json allAlumni}}}"
 
-Use the following format for each mentor:
-{
-  "name": "",
-  "email": "",
-  "graduationYear": "",
-  "currentRole": "",
-  "skills": "",
-  "linkedinURL": "",
-  "matchScore": 0,
-  "shortBio": ""
-}
+Instructions:
+1.  Carefully review the list of all alumni.
+2.  Select the top 5 alumni who are the best-matched mentors for the student.
+3.  For each match, calculate a "matchScore" from 0 to 100 that represents how strong the connection is. A higher score means a better match. Consider skills, industry, and role alignment.
+4.  Return ONLY the top 5 mentors as a JSON object that conforms to the output schema. Ensure the 'mentorMatches' field is an array of these 5 mentors.
 `,
 });
 

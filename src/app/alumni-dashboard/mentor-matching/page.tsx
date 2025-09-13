@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Handshake, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { findMentorsAction } from '@/lib/actions';
 import { MentorCard } from '@/components/app/mentor-card';
+import { alumniData as initialAlumniData } from '@/lib/data';
+import type { Alumni } from '@/lib/types';
+
+const ALUMNI_STORAGE_KEY = 'alumni-data';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -31,6 +36,22 @@ function SubmitButton() {
 
 export default function MentorMatchingPage() {
   const [state, formAction] = useActionState(findMentorsAction, null);
+  const [allAlumni, setAllAlumni] = useState<Alumni[]>([]);
+  const formStatus = useFormStatus();
+
+  useEffect(() => {
+    try {
+      const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
+      if (storedAlumni) {
+        setAllAlumni(JSON.parse(storedAlumni));
+      } else {
+        setAllAlumni(initialAlumniData);
+      }
+    } catch (error) {
+      console.error("Could not load alumni data from localStorage", error);
+      setAllAlumni(initialAlumniData);
+    }
+  }, []);
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
@@ -44,6 +65,7 @@ export default function MentorMatchingPage() {
           </CardHeader>
           <CardContent>
             <form action={formAction} className="space-y-4">
+              <input type="hidden" name="allAlumni" value={JSON.stringify(allAlumni)} />
               <div>
                 <Label htmlFor="skillsAndInterests">Your Skills & Interests</Label>
                 <Textarea
@@ -66,13 +88,13 @@ export default function MentorMatchingPage() {
       <div className="md:col-span-2 space-y-6">
         <h2 className="text-2xl font-headline font-bold">Top Mentor Matches</h2>
         
-        {!state?.data && !useFormStatus().pending && (
+        {!state?.data && !formStatus.pending && (
             <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
                 Your mentor matches will appear here.
             </div>
         )}
 
-        {useFormStatus().pending && (
+        {formStatus.pending && (
             <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="p-4 border rounded-lg flex items-start gap-4 animate-pulse">

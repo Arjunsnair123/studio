@@ -39,11 +39,13 @@ export async function enrichAlumniProfile(prevState: any, formData: FormData) {
 
 const findMentorsSchema = z.object({
     skillsAndInterests: z.string().min(10, { message: "Please describe your skills and interests." }),
+    allAlumni: z.string().min(1, "Alumni list is missing."),
 });
 
 export async function findMentorsAction(prevState: any, formData: FormData) {
     const validatedFields = findMentorsSchema.safeParse({
         skillsAndInterests: formData.get('skillsAndInterests'),
+        allAlumni: formData.get('allAlumni'),
     });
 
     if (!validatedFields.success) {
@@ -54,15 +56,25 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
     }
     
     try {
-        const result = await findPotentialMentors({ studentSkillsAndInterests: validatedFields.data.skillsAndInterests });
-        // Add avatars to results for display
-        const mentorsWithAvatars: Alumni[] = result.mentorMatches.map((mentor, index) => ({
-            ...mentor,
-            id: `mentor-${index}`,
-            graduationYear: parseInt(mentor.graduationYear),
-            skills: mentor.skills.split(',').map(s => s.trim()),
-            avatarUrl: `https://picsum.photos/seed/${110 + index}/200/200`,
-        }));
+        const allAlumni: Alumni[] = JSON.parse(validatedFields.data.allAlumni);
+        
+        const result = await findPotentialMentors({ 
+            studentSkillsAndInterests: validatedFields.data.skillsAndInterests,
+            allAlumni: allAlumni,
+        });
+
+        // The AI now returns full alumni objects, but we need to ensure they have the right shape.
+        // We'll map them to add a consistent ID and avatar, similar to before.
+        const mentorsWithAvatars: Alumni[] = result.mentorMatches.map((mentor, index) => {
+            const originalAlumnus = allAlumni.find(a => a.name === mentor.name && a.email === mentor.email);
+            return {
+                ...mentor,
+                id: originalAlumnus?.id || `mentor-${index}`,
+                graduationYear: parseInt(mentor.graduationYear),
+                skills: typeof mentor.skills === 'string' ? mentor.skills.split(',').map(s => s.trim()) : [],
+                avatarUrl: originalAlumnus?.avatarUrl || `https://picsum.photos/seed/${110 + index}/200/200`,
+            }
+        });
 
         return {
             message: 'Mentors found successfully.',
