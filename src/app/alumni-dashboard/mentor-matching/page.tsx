@@ -11,6 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { findMentorsAction } from '@/lib/actions';
 import { MentorCard } from '@/components/app/mentor-card';
+import { useEffect, useState } from 'react';
+import { Alumni } from '@/lib/types';
+import { alumniData } from '@/lib/data';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,9 +33,26 @@ function SubmitButton() {
   );
 }
 
+const ALUMNI_STORAGE_KEY = 'alumni-data';
+
 export default function MentorMatchingPage() {
   const [state, formAction] = useActionState(findMentorsAction, null);
   const { pending } = useFormStatus();
+  const [allAlumni, setAllAlumni] = useState<Alumni[]>([]);
+
+  useEffect(() => {
+    try {
+      const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
+      if (storedAlumni) {
+        setAllAlumni(JSON.parse(storedAlumni));
+      } else {
+        setAllAlumni(alumniData);
+      }
+    } catch (error) {
+      console.error("Could not load alumni data from localStorage", error);
+      setAllAlumni(alumniData);
+    }
+  }, []);
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
@@ -46,6 +66,7 @@ export default function MentorMatchingPage() {
           </CardHeader>
           <CardContent>
             <form action={formAction} className="space-y-4">
+              <input type="hidden" name="allAlumni" value={JSON.stringify(allAlumni)} />
               <div>
                 <Label htmlFor="skillsAndInterests">Your Skills & Interests</Label>
                 <Textarea

@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateEventInvitation } from '@/ai/flows/generate-event-invitation';
@@ -39,11 +40,13 @@ export async function enrichAlumniProfile(prevState: any, formData: FormData) {
 
 const findMentorsSchema = z.object({
     skillsAndInterests: z.string().min(10, { message: "Please describe your skills and interests." }),
+    allAlumni: z.string(),
 });
 
 export async function findMentorsAction(prevState: any, formData: FormData) {
     const validatedFields = findMentorsSchema.safeParse({
         skillsAndInterests: formData.get('skillsAndInterests'),
+        allAlumni: formData.get('allAlumni'),
     });
 
     if (!validatedFields.success) {
@@ -52,18 +55,28 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
             error: validatedFields.error.flatten().fieldErrors,
         };
     }
+    
+    let allAlumniParsed: Alumni[] = [];
+    try {
+        allAlumniParsed = JSON.parse(validatedFields.data.allAlumni);
+    } catch(e) {
+        return {
+            message: 'Could not parse alumni list.',
+            error: 'Invalid alumni data format.'
+        }
+    }
 
     try {
         const result = await findPotentialMentors({ 
             studentSkillsAndInterests: validatedFields.data.skillsAndInterests,
+            allAlumni: allAlumniParsed,
         });
 
+        // The AI flow now returns Alumni-like objects, so we just need to ensure types are correct.
         const mentorsWithDetails: Alumni[] = result.mentorMatches.map((mentor, index) => ({
             ...mentor,
-            id: `mentor-${index}`,
-            graduationYear: parseInt(mentor.graduationYear),
-            skills: typeof mentor.skills === 'string' ? mentor.skills.split(',').map(s => s.trim()) : [],
-            avatarUrl: `https://picsum.photos/seed/mentor${Date.now() + index}/200/200`,
+            id: mentor.id || `mentor-${Date.now() + index}`,
+            avatarUrl: mentor.avatarUrl || `https://picsum.photos/seed/mentor${Date.now() + index}/200/200`,
         }));
 
         return {
