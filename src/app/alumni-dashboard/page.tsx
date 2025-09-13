@@ -1,30 +1,112 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Mail, Linkedin, Briefcase, GraduationCap, Sparkles, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { alumniData } from '@/lib/data';
+import { alumniData as initialAlumniData } from '@/lib/data';
 import type { Alumni } from '@/lib/types';
 import { AlumniForm } from '@/components/app/alumni-form';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// For demo purposes, we'll use the first alumni as the "logged in" user.
-const loggedInAlumni = alumniData[0];
+const ALUMNI_STORAGE_KEY = 'alumni-data';
+const LOGGED_IN_USER_ID_KEY = 'alumni-user-id';
 
 export default function AlumniProfilePage() {
-  const [alumni, setAlumni] = useState<Alumni>(loggedInAlumni);
+  const [alumni, setAlumni] = useState<Alumni | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    try {
+        const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
+        const loggedInId = localStorage.getItem(LOGGED_IN_USER_ID_KEY);
+        
+        let alumniList: Alumni[] = initialAlumniData;
+        if (storedAlumni) {
+            alumniList = JSON.parse(storedAlumni);
+        } else {
+            localStorage.setItem(ALUMNI_STORAGE_KEY, JSON.stringify(initialAlumniData));
+        }
+
+        let currentUser: Alumni | undefined;
+        if (loggedInId) {
+            currentUser = alumniList.find(a => a.id === loggedInId);
+        }
+
+        // Fallback to the first user if no logged-in user is found
+        if (!currentUser) {
+            currentUser = alumniList.length > 0 ? alumniList[0] : undefined;
+            if(currentUser) {
+              localStorage.setItem(LOGGED_IN_USER_ID_KEY, currentUser.id);
+            }
+        }
+        
+        setAlumni(currentUser || null);
+
+    } catch (error) {
+        console.error("Failed to load profile data", error);
+        setAlumni(initialAlumniData[0] || null);
+    }
+  }, []);
+
   const handleSaveProfile = (savedAlumni: Alumni) => {
     setAlumni(savedAlumni);
+    // Also update the master list in localStorage
+    try {
+        const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
+        let alumniList: Alumni[] = storedAlumni ? JSON.parse(storedAlumni) : [];
+        const userIndex = alumniList.findIndex(a => a.id === savedAlumni.id);
+        if (userIndex > -1) {
+            alumniList[userIndex] = savedAlumni;
+        } else {
+            alumniList.push(savedAlumni);
+        }
+        localStorage.setItem(ALUMNI_STORAGE_KEY, JSON.stringify(alumniList));
+    } catch (error) {
+        console.error("Failed to save profile to master list", error);
+    }
+
     setIsDialogOpen(false);
     toast({ title: 'Profile Updated', description: "Your profile has been successfully updated."});
   };
+
+  if (!alumni) {
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-2">
+                 <Skeleton className="h-9 w-48" />
+                 <Skeleton className="h-10 w-32" />
+            </div>
+            <Card>
+                <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row items-start gap-6">
+                        <Skeleton className="h-[150px] w-[150px] rounded-full" />
+                        <div className="flex-grow space-y-4">
+                            <Skeleton className="h-9 w-1/2" />
+                            <Skeleton className="h-6 w-1/3" />
+                             <div className="mt-4 flex flex-wrap gap-4">
+                                <Skeleton className="h-5 w-24" />
+                                <Skeleton className="h-5 w-40" />
+                                <Skeleton className="h-5 w-32" />
+                             </div>
+                        </div>
+                    </div>
+                     <div className="mt-6 border-t pt-6 space-y-2">
+                        <Skeleton className="h-6 w-40 mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
 
   return (
     <>

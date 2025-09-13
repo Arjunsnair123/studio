@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Link as LinkIcon, Menu } from 'lucide-react';
 
 import {
@@ -16,6 +17,9 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+
+const LOGGED_IN_USER_ID_KEY = 'alumni-user-id';
+
 
 type NavItem = {
   href: string;
@@ -32,6 +36,18 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children, navItems, title }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // In a real app, you would call an authentication service to log out.
+    // For this demo, we'll clear the simulated logged-in user from localStorage.
+    try {
+        localStorage.removeItem(LOGGED_IN_USER_ID_KEY);
+    } catch (error) {
+        console.error("Could not log out:", error);
+    }
+    router.push('/');
+  }
 
   return (
     <SidebarProvider>
@@ -50,18 +66,16 @@ export function DashboardLayout({ children, navItems, title }: DashboardLayoutPr
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior={false} passHref>
-                  <SidebarMenuButton
+                <SidebarMenuButton
                     asChild
                     isActive={pathname === item.href}
                     tooltip={item.label}
-                  >
-                    <div>
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </Link>
+                >
+                    <Link href={item.href}>
+                        {item.icon}
+                        <span>{item.label}</span>
+                    </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -76,8 +90,8 @@ export function DashboardLayout({ children, navItems, title }: DashboardLayoutPr
           <div className="w-full flex-1">
             <h1 className="text-lg font-headline font-semibold">{title}</h1>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/">Log Out</Link>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            Log Out
           </Button>
         </header>
         <main className="flex-1 p-4 sm:p-6 bg-background/80">{children}</main>
