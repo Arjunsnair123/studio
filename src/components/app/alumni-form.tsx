@@ -1,0 +1,167 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useFormState } from 'react-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Wand2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import type { Alumni } from '@/lib/types';
+import { enrichAlumniProfile } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+
+const alumniSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  graduationYear: z.coerce.number().min(1900).max(new Date().getFullYear() + 10),
+  currentRole: z.string().min(1, 'Current role is required'),
+  skills: z.string(),
+  linkedinURL: z.string().url().optional().or(z.literal('')),
+  shortBio: z.string(),
+});
+
+type AlumniFormProps = {
+  alumni?: Alumni | null;
+  onSave: (data: Alumni) => void;
+  onCancel: () => void;
+};
+
+export function AlumniForm({ alumni, onSave, onCancel }: AlumniFormProps) {
+  const { toast } = useToast();
+  const [enrichState, enrichFormAction] = useFormState(enrichAlumniProfile, null);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting: isFormSubmitting },
+    setValue,
+    watch,
+    trigger,
+  } = useForm<z.infer<typeof alumniSchema>>({
+    resolver: zodResolver(alumniSchema),
+    defaultValues: {
+      name: alumni?.name || '',
+      email: alumni?.email || '',
+      graduationYear: alumni?.graduationYear || new Date().getFullYear(),
+      currentRole: alumni?.currentRole || '',
+      skills: alumni?.skills?.join(', ') || '',
+      linkedinURL: alumni?.linkedinURL || '',
+      shortBio: alumni?.shortBio || '',
+    },
+  });
+
+  const linkedinUrlValue = watch('linkedinURL');
+
+  useEffect(() => {
+    if (enrichState?.message) {
+      toast({
+        title: enrichState.error ? 'Enrichment Failed' : 'Enrichment Success',
+        description: enrichState.message,
+        variant: enrichState.error ? 'destructive' : 'default',
+      });
+    }
+    if (enrichState?.data) {
+      const { name, education, skills, bio } = enrichState.data;
+      if (name) setValue('name', name);
+      if (bio) setValue('shortBio', bio);
+      if (skills) setValue('skills', skills.join(', '));
+      // You might want to update graduation year/role based on education if available
+    }
+  }, [enrichState, setValue, toast]);
+
+  const onSubmit = (data: z.infer<typeof alumniSchema>) => {
+    onSave({
+      ...alumni!,
+      id: alumni?.id || Date.now().toString(),
+      ...data,
+      skills: data.skills.split(',').map((s) => s.trim()).filter(Boolean),
+      avatarUrl: alumni?.avatarUrl || `https://picsum.photos/seed/${Date.now()}/200/200`,
+    });
+  };
+
+  const handleEnrich = async () => {
+    const isValid = await trigger('linkedinURL');
+    if (isValid && linkedinUrlValue) {
+      const formData = new FormData();
+      formData.append('linkedinUrl', linkedinUrlValue);
+      enrichFormAction(formData);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Full Name</Label>
+          <Input id="name" {...register('name')} />
+          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        </div>
+        <div>
+          <Label htmlFor="email">Email Address</Label>
+          <Input id="email" type="email" {...register('email')} />
+          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <Label htmlFor="currentRole">Current Role</Label>
+            <Input id="currentRole" {...register('currentRole')} />
+            {errors.currentRole && <p className="text-sm text-destructive">{errors.currentRole.message}</p>}
+        </div>
+        <div>
+            <Label htmlFor="graduationYear">Graduation Year</Label>
+            <Input id="graduationYear" type="number" {...register('graduationYear')} />
+            {errors.graduationYear && <p className="text-sm text-destructive">{errors.graduationYear.message}</p>}
+        </div>
+      </div>
+
+       <Card>
+            <CardHeader>
+                <CardTitle className="text-lg font-headline">AI Profile Enrichment</CardTitle>
+                <CardDescription>Enter a LinkedIn URL to automatically fill in profile details.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                <div className="flex gap-2">
+                    <div className="flex-grow">
+                        <Label htmlFor="linkedinURL" className="sr-only">LinkedIn URL</Label>
+                        <Input id="linkedinURL" placeholder="https://www.linkedin.com/in/..." {...register('linkedinURL')} />
+                    </div>
+                    <Button type="button" onClick={handleEnrich} disabled={isFormSubmitting} variant="outline">
+                       <Wand2 className="mr-2 h-4 w-4" />
+                        Enrich with AI
+                    </Button>
+                </div>
+                 {errors.linkedinURL && <p className="text-sm text-destructive">{errors.linkedinURL.message}</p>}
+            </CardContent>
+       </Card>
+
+      <div>
+        <Label htmlFor="skills">Skills (comma-separated)</Label>
+        <Input id="skills" {...register('skills')} placeholder="e.g., React, Product Management, UI/UX" />
+        {errors.skills && <p className="text-sm text-destructive">{errors.skills.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="shortBio">Short Bio</Label>
+        <Textarea id="shortBio" {...register('shortBio')} rows={4} />
+        {errors.shortBio && <p className="text-sm text-destructive">{errors.shortBio.message}</p>}
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isFormSubmitting}>
+          {isFormSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {alumni ? 'Save Changes' : 'Add Alumni'}
+        </Button>
+      </div>
+    </form>
+  );
+}

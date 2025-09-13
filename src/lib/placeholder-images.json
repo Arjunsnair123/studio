@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "Professional headshot of a woman smiling.",
+      "imageUrl": "https://picsum.photos/seed/101/200/200",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Professional headshot of a man in a suit.",
+      "imageUrl": "https://picsum.photos/seed/102/200/200",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Headshot of a person with glasses.",
+      "imageUrl": "https://picsum.photos/seed/103/200/200",
+      "imageHint": "person glasses"
+    },
+    {
+      "id": "avatar-4",
+      "description": "Candid photo of a person laughing.",
+      "imageUrl": "https://picsum.photos/seed/104/200/200",
+      "imageHint": "person laughing"
+    },
+    {
+      "id": "avatar-5",
+      "description": "Professional headshot of a woman.",
+      "imageUrl": "https://picsum.photos/seed/105/200/200",
+      "imageHint": "woman professional"
+    },
+    {
+      "id": "avatar-6",
+      "description": "Professional headshot of a man.",
+      "imageUrl": "https://picsum.photos/seed/106/200/200",
+      "imageHint": "man professional"
+    },
+    {
+      "id": "event-1",
+      "description": "Networking event with people talking.",
+      "imageUrl": "https://picsum.photos/seed/201/800/400",
+      "imageHint": "business networking"
+    },
+    {
+      "id": "event-2",
+      "description": "A workshop or a presentation.",
+      "imageUrl": "https://picsum.photos/seed/202/800/400",
+      "imageHint": "business workshop"
+    },
+    {
+      "id": "event-3",
+      "description": "A gala or formal dinner event.",
+      "imageUrl": "https://picsum.photos/seed/203/800/400",
+      "imageHint": "formal gala"
+    },
+    {
+      "id": "login-background",
+      "description": "A modern university campus.",
+      "imageUrl": "https://picsum.photos/seed/301/1920/1080",
+      "imageHint": "university campus"
+    }
+  ]
 }
