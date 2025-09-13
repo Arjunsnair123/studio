@@ -63,22 +63,22 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
             allAlumni: allAlumni,
         });
 
-        // The AI now returns full alumni objects, but we need to ensure they have the right shape.
-        // We'll map them to add a consistent ID and avatar, similar to before.
-        const mentorsWithAvatars: Alumni[] = result.mentorMatches.map((mentor, index) => {
+        // The AI returns mentor objects. We map them to our full Alumni type,
+        // ensuring they have a consistent ID and avatar by finding the original alumnus.
+        const mentorsWithDetails: Alumni[] = result.mentorMatches.map((mentor, index) => {
             const originalAlumnus = allAlumni.find(a => a.name === mentor.name && a.email === mentor.email);
             return {
                 ...mentor,
                 id: originalAlumnus?.id || `mentor-${index}`,
-                graduationYear: parseInt(mentor.graduationYear),
+                graduationYear: parseInt(mentor.graduationYear), // AI might return year as string
                 skills: typeof mentor.skills === 'string' ? mentor.skills.split(',').map(s => s.trim()) : [],
-                avatarUrl: originalAlumnus?.avatarUrl || `https://picsum.photos/seed/${110 + index}/200/200`,
+                avatarUrl: originalAlumnus?.avatarUrl || `https://picsum.photos/seed/mentor${Date.now() + index}/200/200`,
             }
         });
 
         return {
             message: 'Mentors found successfully.',
-            data: mentorsWithAvatars,
+            data: mentorsWithDetails,
         };
     } catch (error) {
         console.error(error);

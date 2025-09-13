@@ -37,7 +37,7 @@ function SubmitButton() {
 export default function MentorMatchingPage() {
   const [state, formAction] = useActionState(findMentorsAction, null);
   const [allAlumni, setAllAlumni] = useState<Alumni[]>([]);
-  const formStatus = useFormStatus();
+  const { pending } = useFormStatus();
 
   useEffect(() => {
     try {
@@ -88,13 +88,13 @@ export default function MentorMatchingPage() {
       <div className="md:col-span-2 space-y-6">
         <h2 className="text-2xl font-headline font-bold">Top Mentor Matches</h2>
         
-        {!state?.data && !formStatus.pending && (
+        {!state?.data && !pending && (
             <div className="text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg">
                 Your mentor matches will appear here.
             </div>
         )}
 
-        {formStatus.pending && (
+        {pending && (
             <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                     <div key={i} className="p-4 border rounded-lg flex items-start gap-4 animate-pulse">

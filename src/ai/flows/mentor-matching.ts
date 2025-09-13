@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { Alumni } from '@/lib/types';
 
 const AlumniSchema = z.object({
   id: z.string(),
