@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,7 +30,7 @@ type EventFormProps = {
 
 export function EventForm({ event, onSave, onCancel }: EventFormProps) {
   const { toast } = useToast();
-  const [invitationState, invitationFormAction] = useFormState(generateInvitationAction, null);
+  const [invitationState, invitationFormAction] = useActionState(generateInvitationAction, null);
   const [eventDetailsForAI, setEventDetailsForAI] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 

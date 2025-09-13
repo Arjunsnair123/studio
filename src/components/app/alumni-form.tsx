@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,7 +33,7 @@ type AlumniFormProps = {
 
 export function AlumniForm({ alumni, onSave, onCancel }: AlumniFormProps) {
   const { toast } = useToast();
-  const [enrichState, enrichFormAction] = useFormState(enrichAlumniProfile, null);
+  const [enrichState, enrichFormAction] = useActionState(enrichAlumniProfile, null);
   
   const {
     register,

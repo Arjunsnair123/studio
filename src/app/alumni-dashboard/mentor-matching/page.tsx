@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { Handshake, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ function SubmitButton() {
 }
 
 export default function MentorMatchingPage() {
-  const [state, formAction] = useFormState(findMentorsAction, null);
+  const [state, formAction] = useActionState(findMentorsAction, null);
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
