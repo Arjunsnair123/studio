@@ -62,7 +62,7 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
         const mentorsWithDetails: Alumni[] = result.mentorMatches.map((mentor, index) => ({
             ...mentor,
             id: mentor.id || `mentor-${Date.now() + index}`,
-            avatarUrl: mentor.avatarUrl || `https://picsum.photos/seed/mentor${Date.now() + index}/200/200`,
+            // The AI now provides the avatarUrl directly.
         }));
 
         return {
