@@ -54,6 +54,7 @@ Your task is to generate a list of 5 suitable mentors based on these interests.
 
 For each mentor, you MUST generate a realistic but FAKE name, email, role, bio, and set of skills.
 You MUST also calculate a "matchScore" from 0-100 for each mentor, representing how well their generated profile aligns with the student's needs.
+For the avatarUrl, you must use the DiceBear API: "https://api.dicebear.com/7.x/initials/json?seed=<NAME>" where <NAME> is the mentor's name.
 
 The student's skills and interests are:
 "{{{studentSkillsAndInterests}}}"
