@@ -54,7 +54,9 @@ const prompt = ai.definePrompt({
 You will be given a list of all available alumni and the student's skills and interests.
 Your task is to analyze this list and return the top 5 alumni who are the most suitable mentors.
 
-For each of the 5 mentors you select, you MUST calculate a "matchScore" from 0-100. This score should represent how well the mentor's profile (skills, role, bio) aligns with the student's needs.
+Your ranking MUST heavily prioritize direct matches between the student's interests and the mentor's listed 'skills'. While the 'currentRole' and 'shortBio' are useful for context, the 'skills' field is the most important factor.
+
+For each of the 5 mentors you select, you MUST calculate a "matchScore" from 0-100. This score should represent how well the mentor's profile (especially their skills) aligns with the student's needs. A mentor with a direct skill match should have a significantly higher score.
 
 The student's skills and interests are:
 "{{{studentSkillsAndInterests}}}"
