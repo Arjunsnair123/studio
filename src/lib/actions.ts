@@ -6,6 +6,7 @@ import { findPotentialMentors } from '@/ai/flows/mentor-matching';
 import { enrichProfile } from '@/ai/flows/profile-enrichment';
 import { z } from 'zod';
 import type { Alumni } from './types';
+import { alumniData } from './data';
 
 const enrichProfileSchema = z.object({
   linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL." }),
@@ -60,10 +61,8 @@ export async function findMentorsAction(prevState: any, formData: FormData) {
     try {
         allAlumniParsed = JSON.parse(validatedFields.data.allAlumni);
     } catch(e) {
-        return {
-            message: 'Could not parse alumni list.',
-            error: 'Invalid alumni data format.'
-        }
+        // If parsing fails, fall back to the static data
+        allAlumniParsed = alumniData;
     }
 
     try {
