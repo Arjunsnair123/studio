@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PlusCircle, MoreVertical, Pencil, Trash2, Calendar as CalendarIcon, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,11 +15,37 @@ import { EventForm } from '@/components/app/event-form';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
+const EVENTS_STORAGE_KEY = 'events-data';
+
 export default function EventManagementPage() {
-  const [eventList, setEventList] = useState<Event[]>(initialEventData);
+  const [eventList, setEventList] = useState<Event[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const storedEvents = localStorage.getItem(EVENTS_STORAGE_KEY);
+      if (storedEvents) {
+        setEventList(JSON.parse(storedEvents));
+      } else {
+        setEventList(initialEventData);
+        localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(initialEventData));
+      }
+    } catch (error) {
+       console.error("Could not load event data from localStorage", error);
+       setEventList(initialEventData);
+    }
+  }, []);
+
+  const updateEventList = (newList: Event[]) => {
+    setEventList(newList);
+    try {
+      localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(newList));
+    } catch (error) {
+      console.error("Could not save event data to localStorage", error);
+    }
+  };
 
   const handleAddEvent = () => {
     setEditingEvent(null);
@@ -32,10 +59,10 @@ export default function EventManagementPage() {
 
   const handleSaveEvent = (savedEvent: Event) => {
     if (editingEvent) {
-      setEventList(eventList.map((e) => (e.id === savedEvent.id ? savedEvent : e)));
+      updateEventList(eventList.map((e) => (e.id === savedEvent.id ? savedEvent : e)));
       toast({ title: 'Event Updated', description: `"${savedEvent.title}" has been updated.` });
     } else {
-      setEventList([savedEvent, ...eventList]);
+      updateEventList([savedEvent, ...eventList]);
       toast({ title: 'Event Created', description: `"${savedEvent.title}" has been created.` });
     }
     setIsDialogOpen(false);
@@ -43,7 +70,7 @@ export default function EventManagementPage() {
   };
   
   const handleDeleteEvent = (eventToDelete: Event) => {
-    setEventList(eventList.filter(e => e.id !== eventToDelete.id));
+    updateEventList(eventList.filter(e => e.id !== eventToDelete.id));
     toast({ title: 'Event Deleted', description: `"${eventToDelete.title}" has been deleted.`, variant: 'destructive'});
   }
 

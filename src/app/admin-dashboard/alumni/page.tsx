@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,11 +15,42 @@ import { AlumniTableActions } from '@/components/app/alumni-table-actions';
 import { AlumniForm } from '@/components/app/alumni-form';
 import { useToast } from '@/hooks/use-toast';
 
+const ALUMNI_STORAGE_KEY = 'alumni-data';
+
 export default function AlumniManagementPage() {
-  const [alumniList, setAlumniList] = useState<Alumni[]>(initialAlumniData);
+  const [alumniList, setAlumniList] = useState<Alumni[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAlumni, setEditingAlumni] = useState<Alumni | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const storedAlumni = localStorage.getItem(ALUMNI_STORAGE_KEY);
+      if (storedAlumni) {
+        setAlumniList(JSON.parse(storedAlumni));
+      } else {
+        setAlumniList(initialAlumniData);
+        localStorage.setItem(ALUMNI_STORAGE_KEY, JSON.stringify(initialAlumniData));
+      }
+    } catch (error) {
+      console.error("Could not load alumni data from localStorage", error);
+      setAlumniList(initialAlumniData);
+    }
+  }, []);
+
+  const updateAlumniList = (newList: Alumni[]) => {
+    setAlumniList(newList);
+    try {
+      localStorage.setItem(ALUMNI_STORAGE_KEY, JSON.stringify(newList));
+    } catch (error) {
+       console.error("Could not save alumni data to localStorage", error);
+    }
+  };
+  
+  const handleDeleteAlumni = (alumniToDelete: Alumni) => {
+    updateAlumniList(alumniList.filter(a => a.id !== alumniToDelete.id));
+    toast({ title: 'Alumni Deleted', description: `${alumniToDelete.name} has been deleted.`, variant: 'destructive'});
+  }
 
   const handleAddAlumni = () => {
     setEditingAlumni(null);
@@ -32,10 +64,10 @@ export default function AlumniManagementPage() {
 
   const handleSaveAlumni = (savedAlumni: Alumni) => {
     if (editingAlumni) {
-      setAlumniList(alumniList.map((a) => (a.id === savedAlumni.id ? savedAlumni : a)));
+      updateAlumniList(alumniList.map((a) => (a.id === savedAlumni.id ? savedAlumni : a)));
       toast({ title: 'Alumni Updated', description: `${savedAlumni.name}'s profile has been updated.` });
     } else {
-      setAlumniList([savedAlumni, ...alumniList]);
+      updateAlumniList([savedAlumni, ...alumniList]);
       toast({ title: 'Alumni Added', description: `${savedAlumni.name} has been added to the database.` });
     }
     setIsDialogOpen(false);
@@ -94,7 +126,7 @@ export default function AlumniManagementPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{alumni.graduationYear}</TableCell>
                   <TableCell>
-                    <AlumniTableActions alumni={alumni} onEdit={handleEditAlumni} />
+                    <AlumniTableActions alumni={alumni} onEdit={handleEditAlumni} onDelete={handleDeleteAlumni} />
                   </TableCell>
                 </TableRow>
               ))}

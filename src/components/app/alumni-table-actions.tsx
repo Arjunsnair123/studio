@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
@@ -26,20 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 type AlumniTableActionsProps = {
   alumni: Alumni;
   onEdit: (alumni: Alumni) => void;
+  onDelete: (alumni: Alumni) => void;
 };
 
-export function AlumniTableActions({ alumni, onEdit }: AlumniTableActionsProps) {
-  const { toast } = useToast();
-
-  const handleDelete = () => {
-    // In a real app, you would make an API call to delete the alumni.
-    // Here we just show a toast.
-    toast({
-      title: 'Alumni Deleted',
-      description: `${alumni.name} has been removed from the database.`,
-    });
-  };
-
+export function AlumniTableActions({ alumni, onEdit, onDelete }: AlumniTableActionsProps) {
   return (
     <AlertDialog>
       <DropdownMenu>
@@ -73,7 +64,7 @@ export function AlumniTableActions({ alumni, onEdit }: AlumniTableActionsProps) 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleDelete}
+            onClick={() => onDelete(alumni)}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             Delete
